@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="widgets.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="resources">
+      <UniqueIdentifier>{454ce492-271c-4a5c-bd3b-1879df25ca86}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="..\..\..\..\..\..\Downloads\aovel-sans-rounded-font\test.ttf">
+      <Filter>resources</Filter>
+    </Font>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="widgets.h" />
+  </ItemGroup>
+</Project>
