@@ -24,7 +24,14 @@ void Widgets::WeeklyHistogram(std::vector<int> data, Font font, int width, int h
         int barY = graphY + graphHeight - barHeight;
 
         // Draw the bar
-        DrawRectangle(barX, barY, barWidth - 10, barHeight, PURPLE);
+        if (data[i] < (maxDataValue / 2)) {
+            DrawRectangle(barX, barY, barWidth - 10, barHeight, DARKPURPLE);
+        }else if (data[i] < (maxDataValue / 1.5)) {
+            DrawRectangle(barX, barY, barWidth - 10, barHeight, PURPLE);
+        }
+        else {
+            DrawRectangle(barX, barY, barWidth - 10, barHeight, VIOLET);
+        }
         Vector2 textPos{ barX + (barWidth - 10) / 2 - 10 , barY - 20 };
         DrawTextEx(font, TextFormat("%i", data[i]), textPos, 20, 2, PURPLE);
 
@@ -41,16 +48,26 @@ void Widgets::DailySales(int daily, Font font, int width, int height)
     Rectangle graphRec = { (float)graphX, (float)graphY, (float)graphWidth, (float)graphHeight };
     DrawRectangleRoundedLines(graphRec, 0.1f, 12, 2.0f, PURPLE);
 
-    Vector2 textPos1{graphWidth / 4.5, graphHeight / 6};
-    Vector2 textPos2{ graphWidth / 2.8, graphHeight / 2 };
+    // Measure the text dimensions
+    Vector2 totalTextSize = MeasureTextEx(font, "TOTAL", 80, 2);
+    Vector2 dailyTextSize = MeasureTextEx(font, TextFormat("%i", daily), 120, 2);
 
-    DrawTextEx(font, "DAILY", textPos1, 80, 2, PURPLE);
+    // Calculate the centered position for the text
+    Vector2 textPos1 = {
+        graphX + (graphWidth - totalTextSize.x) / 2,
+        graphY + (graphHeight / 2 - totalTextSize.y) / 2
+    };
+    Vector2 textPos2 = {
+        graphX + (graphWidth - dailyTextSize.x) / 2,
+        graphY + (graphHeight / 2 - dailyTextSize.y) / 2 + graphHeight / 2
+    };
+
+    DrawTextEx(font, "TOTAL", textPos1, 80, 2, PURPLE);
     DrawTextEx(font, TextFormat("%i", daily), textPos2, 120, 2, PURPLE);
 
 }
 
-void Widgets::YearlyLineGraph(std::vector<int> data, Font font, int width, int height)
-{
+void Widgets::YearlyLineGraph(std::vector<int> data, Font font, int width, int height, Color color) {
     int graphX = 20;
     int graphY = height / 2.5;
     int graphWidth = width - 40;
@@ -59,7 +76,26 @@ void Widgets::YearlyLineGraph(std::vector<int> data, Font font, int width, int h
     Rectangle graphRec = { (float)graphX, (float)graphY, (float)graphWidth, (float)graphHeight };
     DrawRectangleRoundedLines(graphRec, 0.1f, 12, 2.0f, PURPLE);
 
+    // Calculate the positions of data points
+    int maxDataValue = *std::max_element(data.begin(), data.end());
+    std::vector<Vector2> points(data.size());
+    for (int i = 0; i < data.size(); i++) {
+        float x = graphX + (i * (graphWidth / (data.size() - 1)));
+        float y = graphY + graphHeight - ((data[i] / (float)maxDataValue) * graphHeight - 20);
+        points[i] = { x, y };
+    }
 
+    // Draw the lines connecting data points
+    for (int i = 0; i < points.size() - 1; i++) {
+        DrawLineEx(points[i], points[i + 1], 2.0f, color);
+    }
+
+    // Draw data points (optional)
+    for (int i = 0; i < points.size(); i++) {
+        DrawCircleV(points[i], 5, color);
+        Vector2 pos{ points[i].x - 10, points[i].y - 20 };
+        DrawTextEx(font, TextFormat("%d", data[i]), pos, 20, 2, color);
+    }
 }
 
 void Widgets::TabularData(std::vector<int> data, Font font, int width, int height)
@@ -69,18 +105,37 @@ void Widgets::TabularData(std::vector<int> data, Font font, int width, int heigh
     int graphWidth = width - 40;
     int graphHeight = height / 3.8;
 
+    std::vector<std::string> tabularInfo{ "TYPE", "PUBLISHED", "SOLD", "REVENUE", "RETURN%" };
+
     Rectangle graphRec = { (float)graphX, (float)graphY, (float)graphWidth, (float)graphHeight };
     DrawRectangleRoundedLines(graphRec, 0.1f, 12, 2.0f, PURPLE);
-    
-    for (int i = 1; i <= 3; i++) {
-        int spacing = graphHeight / 4;
-        DrawRectangleLines(graphX + spacing * i, )
 
+    int numColumns = data.size();
+    int numRows = tabularInfo.size();
+
+    // Draw horizontal grid lines
+    for (int i = 1; i < numRows; i++) {
+        int spacing = graphHeight / (numRows);
+        DrawLine(graphX, graphY + spacing * i, graphX + graphWidth, graphY + spacing * i, PURPLE);
     }
 
-    for (int j = 0; j < data.size(); j++) {
-
+    // Draw vertical grid lines
+    for (int j = 1; j <= numColumns; j++) {
+        int spacing = graphWidth / (numColumns + 1);
+        DrawLine(graphX + spacing * j, graphY, graphX + spacing * j, graphY + graphHeight, PURPLE);
     }
 
+    // Draw headers (top to bottom)
+    for (int i = 0; i < numRows; i++) {
+        int spacing = graphHeight / (numRows + 1) + 10;
+        Vector2 headerPos = { graphX + 10, (graphY + spacing * i) + 20};
+        DrawTextEx(font, tabularInfo[i].c_str(), headerPos, 12, 2, PURPLE);
+    }
 
+    // Draw data (left to right in rows)
+    for (int j = 0; j < numColumns; j++) {
+        int columnSpacing = graphWidth / (numColumns);
+        Vector2 dataPos = { graphX + columnSpacing * (j + 1) - MeasureTextEx(font, TextFormat("%d", data[j]), 20, 2).x / 2, graphY + graphHeight / (numRows + 1) + 10 };
+        DrawTextEx(font, TextFormat("%d", data[j]), dataPos, 20, 2, PURPLE);
+    }
 }
