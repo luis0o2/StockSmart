@@ -82,6 +82,7 @@ void Widgets::YearlyLineGraph(std::vector<int> data, Font font, int width, int h
 
     // Calculate the positions of data points
     int maxDataValue = *std::max_element(data.begin(), data.end());
+    //int maxDataValue = 2000;
     std::vector<Vector2> points(data.size());
     for (int i = 0; i < data.size(); i++) {
         float x = graphX + (i * (graphWidth / (data.size() - 1)));

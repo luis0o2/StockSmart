@@ -4,9 +4,10 @@
 #include <sstream>
 #include <unordered_map>
 #include <vector>
-#include <vector>
+#include <algorithm>
 #include "widgets.h"
 #include "SalesData.h" 
+#include <map>
 
 
 #define WIDTH 2000
@@ -29,9 +30,19 @@ void trimQuotes(std::string& str) {
 	}
 }
 
+std::string getYearMonth(const std::string& date) {
+    std::stringstream ss(date);
+    std::string month, day, year;
+    std::getline(ss, month, '/');
+    getline(ss, day, '/');
+    getline(ss, year);
+    return year + "-" + (month.size() == 1 ? "0" + month : month); // Format as YYYY-MM
+}
+
 void processSalesData(const std::string& filename,
     std::unordered_map<std::string, SalesData>& productSales,
-    std::unordered_map< std::string, std::unordered_map< std::string, SalesData>>& countryProductSales) {
+    std::unordered_map<std::string, std::unordered_map<std::string, SalesData>>& monthlyCountrySales,
+    std::unordered_map<std::string, std::unordered_map<std::string, SalesData>>& countryProductSales) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Error opening file." << std::endl;
@@ -43,9 +54,9 @@ void processSalesData(const std::string& filename,
 
     while (std::getline(file, line)) {
         std::stringstream ss(line);
-        std::string productType, country, soldStr, returnStr, revenueStr, dates, asin, cancelled;
+        std::string productType, country, soldStr, returnStr, revenueStr, date, asin, cancelled;
 
-        std::getline(ss, dates, ',');
+        std::getline(ss, date, ',');
         std::getline(ss, asin, ',');
         std::getline(ss, productType, ',');
         std::getline(ss, country, ',');
@@ -53,45 +64,76 @@ void processSalesData(const std::string& filename,
 
         std::getline(ss, returnStr, ',');
         trimQuotes(returnStr);
+        int returned = 0;
         if (!returnStr.empty() && isNumeric(returnStr)) {
-            int returned = stoi(returnStr);
+            returned = stoi(returnStr);
             productSales[productType].returned += returned;
             countryProductSales[productType][country].returned += returned;
+
         }
 
         std::getline(ss, soldStr, ',');
         trimQuotes(soldStr);
+        int sold = 0;
         if (!soldStr.empty() && isNumeric(soldStr)) {
-            int sold = stoi(soldStr);
+            sold = stoi(soldStr);
             productSales[productType].sold += sold;
             countryProductSales[productType][country].sold += sold;
+            std::string yearMonth = getYearMonth(date);
+            monthlyCountrySales[country][yearMonth].sold += sold;
         }
 
         std::getline(ss, revenueStr, ',');
         trimQuotes(revenueStr);
+        double revenue = 0.0;
         if (!revenueStr.empty() && isNumeric(revenueStr)) {
-            double revenue = stod(revenueStr);
+            revenue = stod(revenueStr);
             productSales[productType].revenue += revenue;
             countryProductSales[productType][country].revenue += revenue;
-        }
-    }
+            std::string yearMonth = getYearMonth(date);
 
-    file.close();
+            monthlyCountrySales[country][yearMonth].revenue += revenue;
+
+        }
+
+
+    }
+        file.close();
+
 }
+
+
 
 int main() {
 
 	InitWindow(WIDTH, HEIGHT, "StockSmart");
 	SetTargetFPS(60);
 	Widgets widget;
-	Widgets widget2;
+    Widgets usWidget;
+    Widgets gbWidget;
+    Widgets deWidget;
+    Widgets frWidget;
+    Widgets itWidget;
+    Widgets esWidget;
+    Widgets jpWidget;
     Font font = LoadFont("resources/test.ttf");
     std::unordered_map<std::string, SalesData> productSales; // Total sales across all countries
     std::unordered_map<std::string, std::unordered_map<std::string, SalesData>> countryProductSales; // Sales by country
+    std::unordered_map<std::string, std::unordered_map<std::string, SalesData>> monthlyCountrySales; //monthly country sales
     std::string filename = "C:/Users/ochoa/Downloads/export.csv";
 
-    processSalesData(filename, productSales, countryProductSales);
 
+    std::vector<int> usSalesData;
+    std::vector<int> gbSalesData;
+    std::vector<int> deSalesData;
+    std::vector<int> frSalesData;
+    std::vector<int> itSalesData;
+    std::vector<int> esSalesData;
+    std::vector<int> jpSalesData;
+
+    processSalesData(filename, productSales, monthlyCountrySales, countryProductSales);
+
+  
 
     int totalSold = 0;
     int totalReturns = 0;
@@ -136,6 +178,26 @@ int main() {
     sales.push_back(esSold);
     sales.push_back(jpSold);
 
+    for (const auto& countryPair : monthlyCountrySales) {
+        const std::string& country = countryPair.first;
+        const auto& monthlySalesMap = countryPair.second;
+
+        for (const auto& monthPair : monthlySalesMap) {
+            const std::string& yearMonth = monthPair.first;
+            const SalesData& salesData = monthPair.second;
+
+            if (country == "US") { usSalesData.push_back(salesData.sold); }
+            else if (country == "GB") { gbSalesData.push_back(salesData.sold); }
+            else if (country == "DE") { deSalesData.push_back(salesData.sold); }
+            else if (country == "FR") { frSalesData.push_back(salesData.sold); }
+            else if (country == "IT") { itSalesData.push_back(salesData.sold); }
+            else if (country == "ES") { esSalesData.push_back(salesData.sold); }
+            else if (country == "JP") { jpSalesData.push_back(salesData.sold); }
+
+            //cout << "\tMonth: " << yearMonth << ", Sold: " << salesData.sold
+            //    << ", Revenue: $" << salesData.revenue << endl;
+        }
+    }
 
 	std::vector<int> values = { 40, 60, 80, 100, 60, 80, 20 };
 	std::vector<int> values2 = { 57, 42, 19, 35, 97, 81, 24 };
@@ -148,8 +210,16 @@ int main() {
 		BeginDrawing();
 			widget.WeeklyHistogram(sales, font, WIDTH, HEIGHT);
 			widget.DailySales(totalSold, font, WIDTH, HEIGHT);
-			widget.YearlyLineGraph(values, font, WIDTH, HEIGHT, GREEN);
-			widget2.YearlyLineGraph(values2, font, WIDTH, HEIGHT, YELLOW);
+            widget.YearlyLineGraph(values, font, WIDTH, HEIGHT, GREEN);
+
+            usWidget.YearlyLineGraph(usSalesData, font, WIDTH, HEIGHT, GREEN);
+            gbWidget.YearlyLineGraph(gbSalesData, font, WIDTH, HEIGHT, BLUE);
+            deWidget.YearlyLineGraph(deSalesData, font, WIDTH, HEIGHT, RED);
+            frWidget.YearlyLineGraph(frSalesData, font, WIDTH, HEIGHT, YELLOW);
+            itWidget.YearlyLineGraph(itSalesData, font, WIDTH, HEIGHT, PURPLE);
+            esWidget.YearlyLineGraph(esSalesData, font, WIDTH, HEIGHT, ORANGE);
+            jpWidget.YearlyLineGraph(jpSalesData, font, WIDTH, HEIGHT, PINK);
+            
 			widget.TabularData(productSales, font, WIDTH, HEIGHT);
 
 			ClearBackground(BLACK);

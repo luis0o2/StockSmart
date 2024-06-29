@@ -1,3 +1,5 @@
+#ifndef WIDGETS_H
+#define WIDGETS_H
 #include <iostream>
 #include <raylib.h>
 #include <fstream>
@@ -19,3 +21,5 @@ public:
 
 
 };
+
+#endif
