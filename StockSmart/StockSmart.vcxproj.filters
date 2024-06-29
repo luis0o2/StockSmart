@@ -16,5 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="widgets.h" />
+    <ClInclude Include="SalesData.h" />
   </ItemGroup>
 </Project>

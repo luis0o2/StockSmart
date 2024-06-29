@@ -12,12 +12,16 @@ void Widgets::WeeklyHistogram(std::vector<int> data, Font font, int width, int h
     Rectangle graphRec = { (float)graphX, (float)graphY, (float)graphWidth, (float)graphHeight };
     DrawRectangleRoundedLines(graphRec, 0.1f, 12, 2.0f, PURPLE);
 
+
     // Calculate the width of each bar
     int barWidth = graphWidth / 7;
-    int maxDataValue = 100;
+    int maxDataValue = *max_element(data.begin(), data.end());
+
+
 
     for (int i = 0; i < 7; i++) {
         int barHeight = ((data[i] * graphHeight) / maxDataValue) - 30;
+
 
         // Ensure the bars fit within the outer rectangle
         int barX = graphX + i * barWidth + 5; // Adding a small margin
@@ -98,44 +102,61 @@ void Widgets::YearlyLineGraph(std::vector<int> data, Font font, int width, int h
     }
 }
 
-void Widgets::TabularData(std::vector<int> data, Font font, int width, int height)
+void Widgets::TabularData(std::unordered_map<std::string, SalesData>& productSales, Font font, int width, int height)
 {
     int graphX = 20;
     int graphY = height / 1.4;
     int graphWidth = width - 40;
     int graphHeight = height / 3.8;
 
-    std::vector<std::string> tabularInfo{ "TYPE", "PUBLISHED", "SOLD", "REVENUE", "RETURN%" };
+    std::vector<std::string> tabularInfo{ "TYPE", "SOLD", "REVENUE", "RETURNED" }; // Adjusted column headers
 
     Rectangle graphRec = { (float)graphX, (float)graphY, (float)graphWidth, (float)graphHeight };
     DrawRectangleRoundedLines(graphRec, 0.1f, 12, 2.0f, PURPLE);
 
-    int numColumns = data.size();
     int numRows = tabularInfo.size();
+    int numColumns = productSales.size(); // Number of product types
 
-    // Draw horizontal grid lines
+    // Calculate tile dimensions
+    int tileWidth = graphWidth / (numColumns + 1);
+    int tileHeight = graphHeight / (numRows);
+
+    // Draw horizontal grid lines for tiles
     for (int i = 1; i < numRows; i++) {
-        int spacing = graphHeight / (numRows);
-        DrawLine(graphX, graphY + spacing * i, graphX + graphWidth, graphY + spacing * i, PURPLE);
+        DrawLine(graphX, graphY + tileHeight * i, graphX + graphWidth, graphY + tileHeight * i, PURPLE);
     }
 
-    // Draw vertical grid lines
-    for (int j = 1; j <= numColumns; j++) {
-        int spacing = graphWidth / (numColumns + 1);
-        DrawLine(graphX + spacing * j, graphY, graphX + spacing * j, graphY + graphHeight, PURPLE);
+    // Draw vertical grid lines for tiles
+    for (int j = 1; j < numColumns + 1; j++) {
+        DrawLine(graphX + tileWidth * j, graphY, graphX + tileWidth * j, graphY + graphHeight, PURPLE);
     }
 
     // Draw headers (top to bottom)
     for (int i = 0; i < numRows; i++) {
-        int spacing = graphHeight / (numRows + 1) + 10;
-        Vector2 headerPos = { graphX + 10, (graphY + spacing * i) + 20};
+        Vector2 headerPos = {30, graphY + tileHeight * (i) + 10 };
         DrawTextEx(font, tabularInfo[i].c_str(), headerPos, 12, 2, PURPLE);
     }
 
-    // Draw data (left to right in rows)
-    for (int j = 0; j < numColumns; j++) {
-        int columnSpacing = graphWidth / (numColumns);
-        Vector2 dataPos = { graphX + columnSpacing * (j + 1) - MeasureTextEx(font, TextFormat("%d", data[j]), 20, 2).x / 2, graphY + graphHeight / (numRows + 1) + 10 };
-        DrawTextEx(font, TextFormat("%d", data[j]), dataPos, 20, 2, PURPLE);
+    // Draw data (left to right in columns)
+    int column = 0;
+    for (const auto& pair : productSales) {
+
+        // Draw Product Type
+        Vector2 dataPosType = { (graphX * 2) + tileWidth * (column + 1), graphY + 10 };
+        DrawTextEx(font, pair.first.c_str(), dataPosType, 12, 2, PURPLE);
+
+        // Draw Sold
+        Vector2 dataPosSold = { graphX + tileWidth * (column + 1) + 10, graphY + tileHeight + 10 };
+        DrawTextEx(font, TextFormat("%d", pair.second.sold), dataPosSold, 15, 2, PURPLE);
+
+        // Draw Revenue
+        Vector2 dataPosRevenue = { graphX + tileWidth * (column + 1) + 10, graphY + tileHeight * 2 + 10 };
+        DrawTextEx(font, TextFormat("$%.2f", pair.second.revenue), dataPosRevenue, 15, 2, PURPLE);
+
+        // Draw Returns
+        Vector2 dataPosReturns = { graphX + tileWidth * (column + 1) + 10, graphY + tileHeight * 3 + 10 };
+        DrawTextEx(font, TextFormat("%d", pair.second.returned), dataPosReturns, 15, 2, PURPLE);
+
+        column++;
     }
 }
