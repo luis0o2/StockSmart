@@ -16,7 +16,7 @@ public:
 
 	void WeeklyHistogram(std::vector<int> data, Font font, int width, int height);
 	void DailySales(int daily, Font font, int width, int height);
-	void YearlyLineGraph(std::vector<int> data, Font font, int width, int height, Color color);
+	void YearlyLineGraph(std::vector<int>& data, Font& font, int width, int height, Color color, int location, const char* country);
 	void TabularData(std::unordered_map<std::string, SalesData>& productSales, Font font, int width, int height);
 
 

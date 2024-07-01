@@ -1,5 +1,6 @@
 #include "widgets.h"
-
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 
 void Widgets::WeeklyHistogram(std::vector<int> data, Font font, int width, int height) {
 
@@ -70,36 +71,70 @@ void Widgets::DailySales(int daily, Font font, int width, int height)
     DrawTextEx(font, TextFormat("%i", daily), textPos2, 120, 2, PURPLE);
 
 }
+static bool checkBoxChecked[7] = { true, true, true, true, true, true, true };
 
-void Widgets::YearlyLineGraph(std::vector<int> data, Font font, int width, int height, Color color) {
+void Widgets::YearlyLineGraph(std::vector<int>& data, Font& font, int width, int height, Color color, int location, const char* country) {
+
+
+    Rectangle test = { 350, 200, 20, 20 };
+
+
+    switch (location) {
+    case 0:  test.x = 50;  test.y = height / 2.7; break;
+    case 1:  test.x = 110;  test.y = height / 2.7; break;
+    case 2:  test.x = 170;  test.y = height / 2.7; break;
+    case 3:  test.x = 230; test.y = height / 2.7; break;
+    case 4:  test.x = 290; test.y = height / 2.7; break;
+    case 5:  test.x = 350; test.y = height / 2.7; break;
+    case 6:  test.x = 410; test.y = height / 2.7; break;
+    }
+    if (GuiCheckBox(test, country, &checkBoxChecked[location])) {
+        checkBoxChecked[location] = !checkBoxChecked[location];
+    }
+
     int graphX = 20;
     int graphY = height / 2.5;
     int graphWidth = width - 40;
     int graphHeight = height / 3.5;
 
-    Rectangle graphRec = { (float)graphX, (float)graphY, (float)graphWidth, (float)graphHeight };
+    int paddingX = 20; 
+    int paddingY = 30; 
+
+    Rectangle graphRec = {
+        graphX + paddingX,
+        graphY + paddingY,
+        graphWidth - 2 * paddingX,
+        graphHeight - 2 * paddingY
+    };
     DrawRectangleRoundedLines(graphRec, 0.1f, 12, 2.0f, PURPLE);
 
-    // Calculate the positions of data points
-    int maxDataValue = *std::max_element(data.begin(), data.end());
-    //int maxDataValue = 2000;
-    std::vector<Vector2> points(data.size());
-    for (int i = 0; i < data.size(); i++) {
-        float x = graphX + (i * (graphWidth / (data.size() - 1)));
-        float y = graphY + graphHeight - ((data[i] / (float)maxDataValue) * graphHeight - 20);
-        points[i] = { x, y };
-    }
+    if (checkBoxChecked[location]) {
 
-    // Draw the lines connecting data points
-    for (int i = 0; i < points.size() - 1; i++) {
-        DrawLineEx(points[i], points[i + 1], 2.0f, color);
-    }
+        // Calculate the positions of data points
+        int maxDataValue = *std::max_element(data.begin(), data.end());
+        if (maxDataValue < 500) {
 
-    // Draw data points (optional)
-    for (int i = 0; i < points.size(); i++) {
-        DrawCircleV(points[i], 5, color);
-        Vector2 pos{ points[i].x - 10, points[i].y - 20 };
-        DrawTextEx(font, TextFormat("%d", data[i]), pos, 20, 2, color);
+            maxDataValue = maxDataValue * 2;
+        }
+        std::vector<Vector2> points(data.size());
+        for (int i = 0; i < data.size(); i++) {
+            float x = graphRec.x + paddingX + ((i * (graphRec.width - 2 * paddingX)) / (float)(data.size() - 1));
+            float y = graphRec.y + paddingY + (graphRec.height - 2 * paddingY) - ((data[i] / (float)maxDataValue) * (graphRec.height - 2 * paddingY));
+
+            points[i] = { x, y };
+        }
+
+        // Draw the lines connecting data points
+        for (int i = 0; i < points.size() - 1; i++) {
+            DrawLineEx(points[i], points[i + 1], 2.0f, color);
+        }
+
+        // Draw data points (optional)
+        for (int i = 0; i < points.size(); i++) {
+            DrawCircleV(points[i], 5, color);
+            Vector2 pos{ points[i].x - 10, points[i].y - 20 };
+            DrawTextEx(font, TextFormat("%d", data[i]), pos, 20, 2, color);
+        }
     }
 }
 

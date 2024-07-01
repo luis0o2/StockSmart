@@ -1,5 +1,4 @@
 #include <iostream>
-#include <raylib.h>
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
@@ -108,6 +107,7 @@ int main() {
 
 	InitWindow(WIDTH, HEIGHT, "StockSmart");
 	SetTargetFPS(60);
+
 	Widgets widget;
     Widgets usWidget;
     Widgets gbWidget;
@@ -199,8 +199,14 @@ int main() {
         }
     }
 
-	std::vector<int> values = { 40, 60, 80, 100, 60, 80, 20 };
-	std::vector<int> values2 = { 57, 42, 19, 35, 97, 81, 24 };
+    std::reverse(usSalesData.begin(), usSalesData.end());
+    std::reverse(gbSalesData.begin(), gbSalesData.end());
+    std::reverse(deSalesData.begin(), deSalesData.end());
+    std::reverse(frSalesData.begin(), frSalesData.end());
+    std::reverse(itSalesData.begin(), itSalesData.end());
+    std::reverse(esSalesData.begin(), esSalesData.end());
+    std::reverse(jpSalesData.begin(), jpSalesData.end());
+
 
 
 	while(!WindowShouldClose()) {
@@ -210,17 +216,28 @@ int main() {
 		BeginDrawing();
 			widget.WeeklyHistogram(sales, font, WIDTH, HEIGHT);
 			widget.DailySales(totalSold, font, WIDTH, HEIGHT);
-            widget.YearlyLineGraph(values, font, WIDTH, HEIGHT, GREEN);
 
-            usWidget.YearlyLineGraph(usSalesData, font, WIDTH, HEIGHT, GREEN);
-            gbWidget.YearlyLineGraph(gbSalesData, font, WIDTH, HEIGHT, BLUE);
-            deWidget.YearlyLineGraph(deSalesData, font, WIDTH, HEIGHT, RED);
-            frWidget.YearlyLineGraph(frSalesData, font, WIDTH, HEIGHT, YELLOW);
-            itWidget.YearlyLineGraph(itSalesData, font, WIDTH, HEIGHT, PURPLE);
-            esWidget.YearlyLineGraph(esSalesData, font, WIDTH, HEIGHT, ORANGE);
-            jpWidget.YearlyLineGraph(jpSalesData, font, WIDTH, HEIGHT, PINK);
+            usWidget.YearlyLineGraph(usSalesData, font, WIDTH, HEIGHT, RED, 0, "US");
+            gbWidget.YearlyLineGraph(gbSalesData, font, WIDTH, HEIGHT, BLUE, 1, "GB");
+            deWidget.YearlyLineGraph(deSalesData, font, WIDTH, HEIGHT, YELLOW, 2, "DE");
+            frWidget.YearlyLineGraph(frSalesData, font, WIDTH, HEIGHT, WHITE, 3, "FR");
+            itWidget.YearlyLineGraph(itSalesData, font, WIDTH, HEIGHT, GREEN, 4, "IT");
+            esWidget.YearlyLineGraph(esSalesData, font, WIDTH, HEIGHT, ORANGE, 5, "ES");
+            jpWidget.YearlyLineGraph(jpSalesData, font, WIDTH, HEIGHT, PINK, 6, "JP");
             
 			widget.TabularData(productSales, font, WIDTH, HEIGHT);
+
+          
+            /*
+            if (checkBoxChecked)
+            {
+                Rectangle test2{ 85, 70, 250, 100 };
+                int result = GuiMessageBox(test2,
+                    "#191#Activate/Deactivate Country", "", "US;GB;DE;FR;IT;ES;JP");
+
+                if (result >= 0) checkBoxChecked = false;
+            }*/
+
 
 			ClearBackground(BLACK);
 
