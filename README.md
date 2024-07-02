@@ -12,11 +12,13 @@ I created a line graph that displays the number of products sold throughout the 
 ### Tabular Data:
 
 I included a table that shows detailed information on the types of products sold, the quantity of each type, the profits made, and the number of returns. This allows me to keep track of inventory and financial performance.
-Bar Graph of Sales by Country:
+
 
 ### Bar Graph
 I developed a bar graph that shows the total number of products sold in each country. This visualization helps me understand my market distribution and where my products are most popular.
 Here's a quick summary of the project:
+
+
 
 Line Graph: Tracks sales over the year.
 Table: Shows product types, quantities, profits, and returns.
