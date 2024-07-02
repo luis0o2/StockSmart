@@ -21,7 +21,9 @@ Here's a quick summary of the project:
 
 
 Line Graph: Tracks sales over the year.
+
 Table: Shows product types, quantities, profits, and returns.
+
 Bar Graph: Displays total sales by country.
 Technical Details:
 
